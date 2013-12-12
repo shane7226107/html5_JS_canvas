@@ -1,37 +1,77 @@
-var msg = $(".msg");
-var letsdraw = false;
+// Canvas related 
+var painting = false;
 var canvas = $(".canvas");
-var canvas_context = canvas[0].getContext('2d');
-var canvasOffset = canvas.offset();
+var context = canvas[0].getContext('2d');
+var clickX = new Array();
+var clickY = new Array();
+var clickDrag = new Array();
 
 /* We must set the canvas size by attribute, NOT in CSS!*/
 canvas.attr("width","400px");
 canvas.attr("height","400px");
 
-canvas.mousemove(function(e) {
-  var cursor_x = e.pageX - canvasOffset.left,
-      cursor_y = e.pageY - canvasOffset.top;
+// Resources
+var outlineImage = new Image();
+outlineImage.onload = resourceLoaded;
+outlineImage.src = "images/geometry.jpg";
 
-    if (letsdraw === true) {
-        canvas_context.lineTo(cursor_x, cursor_y);
-        canvas_context.stroke();
-        // msg.append("<br>x: "+cursor_x+" y: "+cursor_y);
+// Misc
+var msg = $(".msg");
+
+canvas.mousedown(function(e){
+  var mouseX = e.pageX - this.offsetLeft,
+      mouseY = e.pageY - this.offsetTop;
+    
+  painting = true;
+  addClick(mouseX, mouseY, false);
+  redraw();
+});
+
+canvas.mousemove(function(e){
+  var mouseX = e.pageX - this.offsetLeft,
+      mouseY = e.pageY - this.offsetTop;
+
+  if(painting){
+    addClick(mouseX, mouseY, true);
+    redraw();
+  }
+});
+
+canvas.mouseup(function(e){
+  painting = false;
+});
+
+canvas.mouseleave(function(e){
+  painting = false;
+});
+
+function addClick(x, y, dragging)
+{
+  clickX.push(x);
+  clickY.push(y);
+  clickDrag.push(dragging);
+}
+
+function redraw(){
+  context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+  
+  context.drawImage(outlineImage, 0, 0);
+
+  context.strokeStyle = "#df4b26";
+  context.lineJoin = "round";
+  context.lineWidth = 3;
+
+  context.beginPath();
+  for(var i=0; i < clickX.length; i++) {    
+    if(clickDrag[i]){
+      context.lineTo(clickX[i], clickY[i]);
+    }else{
+      context.moveTo(clickX[i], clickY[i]);
     }
-});
+  }
+  context.stroke();
+}
 
-canvas.mousedown(function(e) {
-  var cursor_x = e.pageX - canvasOffset.left,
-      cursor_y = e.pageY - canvasOffset.top;
-
-  letsdraw = true;
-  canvas_context.strokeStyle = 'blue';
-  canvas_context.lineWidth = 1;
-  canvas_context.lineCap = 'round';
-  canvas_context.beginPath();
-
-  canvas_context.moveTo(cursor_x, cursor_y);
-});
-
-$(window).mouseup(function() {
-    letsdraw = false;
-});
+function resourceLoaded() {
+  redraw();  
+}
