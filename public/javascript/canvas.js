@@ -51,7 +51,8 @@ function addClick(x, y, dragging)
 {
   clickX.push(x);
   clickY.push(y);
-  clickDrag.push(dragging);
+  clickDrag.push(dragging);  
+  click_push();
 }
 
 function redraw(){
@@ -78,4 +79,16 @@ function redraw(){
 
 function resourceLoaded() {
   redraw();  
+}
+
+function pulled_strokes(data){
+  context.beginPath();
+  for(var i=0; i < data.clickX.length; i++) {    
+    if(data.clickDrag[i]){
+      context.lineTo(data.clickX[i]-wrapper_offset.left, data.clickY[i]-wrapper_offset.top);
+    }else{
+      context.moveTo(data.clickX[i]-wrapper_offset.left, data.clickY[i]-wrapper_offset.top);
+    }
+  }
+  context.stroke();
 }
