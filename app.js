@@ -13,12 +13,8 @@ app.get('*', function (req, res) {
 });
 
 io.sockets.on('connection', function (socket) {
-
-  //送出
-  socket.emit('server_emitting', { data: 'hello, this is from server.' });
-  
-  //接收
-  socket.on('client_emitting', function (data) {
+  socket.emit('news', { hello: 'world' });
+  socket.on('my other event', function (data) {
     console.log(data);
   });
 });
