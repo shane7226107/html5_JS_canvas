@@ -5,10 +5,12 @@ var context = canvas[0].getContext('2d');
 var clickX = new Array();
 var clickY = new Array();
 var clickDrag = new Array();
+var wrapper = $(".wrapper");
+var wrapper_offset = wrapper.position();
 
 /* We must set the canvas size by attribute, NOT in CSS!*/
-canvas.attr("width","400px");
-canvas.attr("height","400px");
+canvas.attr("width",wrapper.css('width')+"px");
+canvas.attr("height",wrapper.css('height')+"px");
 
 // Resources
 var outlineImage = new Image();
@@ -55,18 +57,20 @@ function addClick(x, y, dragging)
 function redraw(){
   context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
   
-  context.drawImage(outlineImage, 0, 0);
+  // context.drawImage(outlineImage, 0, 0);
 
   context.strokeStyle = "#df4b26";
   context.lineJoin = "round";
   context.lineWidth = 3;
 
+  // console.log(wrapper_offset.top);
+
   context.beginPath();
   for(var i=0; i < clickX.length; i++) {    
     if(clickDrag[i]){
-      context.lineTo(clickX[i], clickY[i]);
+      context.lineTo(clickX[i]-wrapper_offset.left, clickY[i]-wrapper_offset.top);
     }else{
-      context.moveTo(clickX[i], clickY[i]);
+      context.moveTo(clickX[i]-wrapper_offset.left, clickY[i]-wrapper_offset.top);
     }
   }
   context.stroke();

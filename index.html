@@ -7,7 +7,10 @@
 
 <body>
 	<h1>Canvas</h1>
+
 	<div class="wrapper inlineblock">
+		<iframe class="doc-embed" scrolling="no" src="https://docs.google.com/document/d/1CLLp5cW4ZgKDxz-6m_WZCMvO7N4_2NgsvewWOMt_XEg/pub?embedded=true"></iframe>
+
 		<canvas class="canvas"></canvas>
 	</div>
 
@@ -19,13 +22,7 @@
 
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
-	  var socket = io.connect('http://localhost');
-	  socket.on('server_emitting', function (data) {
-
-	    console.log(data);
-
-	    socket.emit('client_emitting', { data: 'Hi, this is from client.' });
-	  });
+	  
 	</script>
 </body>
 
