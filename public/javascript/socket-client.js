@@ -1,4 +1,4 @@
-var socket = io.connect('http://192.168.2.38:3000'),
+var socket = io.connect('http://localhost:3000'),
     socket_id = null,
     LOCAL_TEST = true;
 
