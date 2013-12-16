@@ -9,13 +9,16 @@ app.get('/', function (req, res) {
 });
 
 app.get('*', function (req, res) {
-  console.log(req.params[0]);
   res.sendfile(__dirname + '/public/'+req.params[0]);
 });
 
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
+
+  //送出
+  socket.emit('server_emitting', { data: 'hello, this is from server.' });
+  
+  //接收
+  socket.on('client_emitting', function (data) {
     console.log(data);
   });
 });
