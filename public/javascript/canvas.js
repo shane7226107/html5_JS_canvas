@@ -82,6 +82,9 @@ function resourceLoaded() {
 }
 
 function pulled_strokes(data){
+
+  context.strokeStyle = "black";
+
   context.beginPath();
   for(var i=0; i < data.clickX.length; i++) {    
     if(data.clickDrag[i]){

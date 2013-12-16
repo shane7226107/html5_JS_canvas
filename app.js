@@ -14,19 +14,21 @@ app.get('*', function (req, res) {
 });
 
 io.sockets.on('connection', function (socket) {
-  
   // Push users into the "classroom"
   users.push(socket);
 
-  // socket.emit('news', { hello: 'world' });
+  socket.emit('registration', socket.id);
 
   socket.on('click_push', function (data) {
-    console.log(data);
+    // console.log(data);
 
     // broadcast to all users
     for (var u in users)    {
       // console.log(users[u].id);
-      users[u].emit('click_pull', data);
+      users[u].emit('click_pull', {
+        data: data,
+        id: users[u].id
+      });
     } 
   });
 });
