@@ -55,6 +55,7 @@ canvas.mouseleave(function(e){
 
 $('.toolbar').on('click','button',function(){
   var btn = $(this).attr('class');
+  
   if(btn === 'btn_eraser' || btn === 'btn_pencil'){
     strokes.type = btn.replace('btn_','');
     msg.html('<p> switch to: ' + btn.replace('btn_','') + '</p>');
@@ -63,6 +64,14 @@ $('.toolbar').on('click','button',function(){
   }else{
 
   }
+});
+
+$('.classrooms').on('click','button',function(){
+  var room = parseInt($(this).attr('room'));
+
+  switch_classroom(room);
+
+  $('.this-classroom').html('You are in classroom '+room);
 });
 
 

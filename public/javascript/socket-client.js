@@ -2,6 +2,10 @@ var socket = io.connect('http://localhost:3000'),
     socket_id = null,
     LOCAL_TEST = true; //畫出來自同session的stroke
 
+/* ////////////////////////////////
+  Server to client
+*/ ////////////////////////////////
+
 // 將從server註冊的sessionID存在client端
 socket.on('registration', function (data) {
   socket_id = data;
@@ -27,12 +31,21 @@ socket.on('clear_pull', function (data) {
   }  
 });
 
-// 使用者新增畫筆動作時,將動作push上server
+/* ////////////////////////////////
+  Client to Server
+*/ ////////////////////////////////
+
+// 使用者新增畫筆動作
 function click_push(strokes){
   socket.emit('click_push',strokes);
 }
 
-// 使用者按下clear時,將動作push上server
+// 使用者按下clear
 function clear_push(){
   socket.emit('clear_push');
+}
+
+// 使用者切換教室
+function switch_classroom(room){
+  socket.emit('switch_classroom',room);
 }
