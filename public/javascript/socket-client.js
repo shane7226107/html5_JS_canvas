@@ -1,6 +1,6 @@
 var socket = io.connect('http://localhost:3000'),
     socket_id = null,
-    LOCAL_TEST = true; //不會跳過同一session的stroke
+    LOCAL_TEST = true; //畫出來自同session的stroke
 
 // 將從server註冊的sessionID存在client端
 socket.on('registration', function (data) {
@@ -23,8 +23,7 @@ function click_push(){
   socket.emit('click_push', 
     { 
       clickX:strokes.clickX,
-      clickY:strokes.clickY,
-      clickDrag:strokes.clickDrag
+      clickY:strokes.clickY
     }
   );
 }
