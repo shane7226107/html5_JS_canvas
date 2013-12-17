@@ -4,16 +4,18 @@ var canvas = $(".canvas");
 var context = canvas[0].getContext('2d');
 var strokes = {
       clickX: [-1,-1],
-      clickY: [-1,-1]
+      clickY: [-1,-1],
+      type: 'default'
     };
 var wrapper = $(".wrapper");
 var wrapper_offset = wrapper.position();
 
-/* We must set the canvas size by attribute, NOT in CSS!*/
+/* 
+  Default settings.
+  We must set the canvas size by attribute, NOT in CSS!
+*/
 canvas.attr("width",wrapper.css('width')+"px");
 canvas.attr("height",wrapper.css('height')+"px");
-context.lineJoin = "round";
-context.lineWidth = 3;
 
 // Resources
 var outlineImage = new Image();
@@ -50,6 +52,26 @@ canvas.mouseleave(function(e){
   reset_strokes();
 });
 
+
+$('.toolbar').on('click','button',function(){
+  var btn = $(this).attr('class');
+  if(btn === 'btn_eraser' || btn === 'btn_pencil'){
+    strokes.type = btn.replace('btn_','');
+    msg.html('<p> switch to: ' + btn.replace('btn_','') + '</p>');
+  }else if (btn === 'btn_clear'){
+    clear_push();
+  }else{
+
+  }
+});
+
+
+/*///////////////////////////////////////////////////////////////////////
+  
+  Functions
+
+*////////////////////////////////////////////////////////////////////////
+
 function reset_strokes(){
   painting = false;
   strokes.clickX[0] = -1;
@@ -72,16 +94,11 @@ function addClick(x, y, dragging)
     strokes.clickY[0] = strokes.clickY[1];
     strokes.clickY[1] = y;    
   }
-  click_push();
+  click_push(strokes);
 }
 
 function my_draw(){
-  // context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
-  
   // context.drawImage(outlineImage, 0, 0);
-
-  context.strokeStyle = "#df4b26";
-
   draw_strokes(strokes);
 }
 
@@ -90,9 +107,6 @@ function resourceLoaded() {
 }
 
 function pulled_strokes(data){
-
-  context.strokeStyle = "black"; 
-
   draw_strokes(data);
 }
 
@@ -105,9 +119,39 @@ function draw_strokes(strokes){
   //   }
   // }
 
+  // stroke型態
+  switch_stroke(strokes.type);
+
   // 只做圖最新兩點即可
   context.beginPath();
   context.lineTo(strokes.clickX[0]-wrapper_offset.left, strokes.clickY[0]-wrapper_offset.top);
   context.lineTo(strokes.clickX[1]-wrapper_offset.left, strokes.clickY[1]-wrapper_offset.top);
   context.stroke();
+}
+
+function switch_stroke (type) {
+  switch(type)
+  {
+    case 'pencil':
+      context.globalCompositeOperation = "source-over";
+      context.strokeStyle = "rgba(0,0,0,1)";
+      context.lineJoin = "round";
+      context.lineWidth = 3;
+      break;
+    case 'eraser':
+      context.globalCompositeOperation = "destination-out";
+      context.strokeStyle = "rgba(0,0,0,1)";
+      context.lineJoin = "round";
+      context.lineWidth = 10;
+      break;
+    default:
+      context.globalCompositeOperation = "source-over";
+      context.strokeStyle = "rgba(0,0,0,1)";
+      context.lineJoin = "round";
+      context.lineWidth = 3;
+  }
+}
+
+function clear_canvas(){
+   context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
 }

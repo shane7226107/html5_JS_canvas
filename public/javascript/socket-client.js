@@ -14,16 +14,25 @@ socket.on('click_pull', function (data) {
   // 跳過自己畫的strokes,只畫其他user的strokes
   // 因為localhost屬於同一個session,所以看不出效果
   if(!(data.id === socket_id) || LOCAL_TEST){
-    pulled_strokes(data.data);  
+    pulled_strokes(data.data);
+  }  
+});
+
+// server廣播某使用者的clear動作
+socket.on('clear_pull', function (data) {
+  // 跳過自己畫的strokes,只畫其他user的strokes
+  // 因為localhost屬於同一個session,所以看不出效果
+  if(!(data.id === socket_id) || LOCAL_TEST){
+    clear_canvas();
   }  
 });
 
 // 使用者新增畫筆動作時,將動作push上server
-function click_push(){
-  socket.emit('click_push', 
-    { 
-      clickX:strokes.clickX,
-      clickY:strokes.clickY
-    }
-  );
+function click_push(strokes){
+  socket.emit('click_push',strokes);
+}
+
+// 使用者按下clear時,將動作push上server
+function clear_push(){
+  socket.emit('clear_push');
 }

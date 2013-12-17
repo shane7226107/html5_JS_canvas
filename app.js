@@ -20,13 +20,19 @@ io.sockets.on('connection', function (socket) {
   socket.emit('registration', socket.id);
 
   socket.on('click_push', function (data) {
-    // console.log(data);
-
     // broadcast to all users
-    for (var u in users)    {
-      // console.log(users[u].id);
+    for (var u in users) {
       users[u].emit('click_pull', {
         data: data,
+        id: users[u].id
+      });
+    } 
+  });
+
+  socket.on('clear_push', function (data) {
+    // broadcast to all users
+    for (var u in users) {
+      users[u].emit('clear_pull',{
         id: users[u].id
       });
     } 
