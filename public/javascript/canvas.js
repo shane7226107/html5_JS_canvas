@@ -2,15 +2,19 @@
 var painting = false;
 var canvas = $(".canvas");
 var context = canvas[0].getContext('2d');
-var clickX = new Array();
-var clickY = new Array();
-var clickDrag = new Array();
+var strokes = {
+      clickX: [],
+      clickY: [],
+      clickDrag: []
+    };
 var wrapper = $(".wrapper");
 var wrapper_offset = wrapper.position();
 
 /* We must set the canvas size by attribute, NOT in CSS!*/
 canvas.attr("width",wrapper.css('width')+"px");
 canvas.attr("height",wrapper.css('height')+"px");
+context.lineJoin = "round";
+context.lineWidth = 3;
 
 // Resources
 var outlineImage = new Image();
@@ -49,9 +53,9 @@ canvas.mouseleave(function(e){
 
 function addClick(x, y, dragging)
 {
-  clickX.push(x);
-  clickY.push(y);
-  clickDrag.push(dragging);  
+  strokes.clickX.push(x);
+  strokes.clickY.push(y);
+  strokes.clickDrag.push(dragging);  
   click_push();
 }
 
@@ -61,20 +65,8 @@ function redraw(){
   // context.drawImage(outlineImage, 0, 0);
 
   context.strokeStyle = "#df4b26";
-  context.lineJoin = "round";
-  context.lineWidth = 3;
 
-  // console.log(wrapper_offset.top);
-
-  context.beginPath();
-  for(var i=0; i < clickX.length; i++) {    
-    if(clickDrag[i]){
-      context.lineTo(clickX[i]-wrapper_offset.left, clickY[i]-wrapper_offset.top);
-    }else{
-      context.moveTo(clickX[i]-wrapper_offset.left, clickY[i]-wrapper_offset.top);
-    }
-  }
-  context.stroke();
+  draw_strokes(strokes);
 }
 
 function resourceLoaded() {
@@ -83,15 +75,22 @@ function resourceLoaded() {
 
 function pulled_strokes(data){
 
-  context.strokeStyle = "black";
+  context.strokeStyle = "black"; 
+
+  draw_strokes(data);
+}
+
+function draw_strokes(strokes){
 
   context.beginPath();
-  for(var i=0; i < data.clickX.length; i++) {    
-    if(data.clickDrag[i]){
-      context.lineTo(data.clickX[i]-wrapper_offset.left, data.clickY[i]-wrapper_offset.top);
+  
+  for(var i=0; i < strokes.clickX.length; i++) {    
+    if(strokes.clickDrag[i]){
+      context.lineTo(strokes.clickX[i]-wrapper_offset.left, strokes.clickY[i]-wrapper_offset.top);
     }else{
-      context.moveTo(data.clickX[i]-wrapper_offset.left, data.clickY[i]-wrapper_offset.top);
+      context.moveTo(strokes.clickX[i]-wrapper_offset.left, strokes.clickY[i]-wrapper_offset.top);
     }
   }
+
   context.stroke();
 }
