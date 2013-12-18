@@ -1,169 +1,167 @@
-// Canvas related 
-var painting = false;
-var canvas = $(".canvas");
-var context = canvas[0].getContext('2d');
-var strokes = {
-      clickX: [-1,-1],
-      clickY: [-1,-1],
-      type: 'default'
-    };
-var wrapper = $(".wrapper");
-var wrapper_offset = wrapper.position();
+var flyWhiteboard = ( function() {
 
-// Create soket connection, with localtest=true
-flySocket.init('http://localhost:3000',true);
+  // Canvas related
+  var painting = false,
+      canvas = null,
+      context = null,
+      strokes = {
+        clickX: [-1,-1],
+        clickY: [-1,-1],
+        type: 'default'
+      },
+      wrapper =  null,
+      wrapper_offset = null;
 
-/* 
-  Default settings.
-  We must set the canvas size by attribute, NOT in CSS!
-*/
-canvas.attr("width",wrapper.css('width')+"px");
-canvas.attr("height",wrapper.css('height')+"px");
+  // DOM Resources
+  var msg = null,
+      outlineImage = null;
 
-// Resources
-var outlineImage = new Image();
-outlineImage.onload = resourceLoaded;
-outlineImage.src = "images/geometry.jpg";
+  /* /////////////////
+    Private Functions
+  */ /////////////////
+  var addClick = function(x, y, dragging){
+        if (strokes.clickX[0] === -1){
+          strokes.clickX[0] = x;
+          strokes.clickX[1] = x;
+          strokes.clickY[0] = y;
+          strokes.clickY[1] = y;
+        }else{
+          strokes.clickX[0] = strokes.clickX[1];
+          strokes.clickX[1] = x;
+          strokes.clickY[0] = strokes.clickY[1];
+          strokes.clickY[1] = y;    
+        }
+        flySocket.click_push(strokes);
+      },
 
-// Misc
-var msg = $(".msg");
+      my_draw = function(){
+        draw_strokes(strokes);
+      },
 
-canvas.mousedown(function(e){
-  var mouseX = e.pageX - this.offsetLeft,
-      mouseY = e.pageY - this.offsetTop;
-    
-  painting = true;
-  addClick(mouseX, mouseY, false);
-  my_draw();
-});
+      reset_strokes = function(){
+        painting = false;
+        strokes.clickX[0] = -1;
+        strokes.clickX[1] = -1;
+        strokes.clickY[0] = -1;
+        strokes.clickY[1] = -1;
+      },
 
-canvas.mousemove(function(e){
-  var mouseX = e.pageX - this.offsetLeft,
-      mouseY = e.pageY - this.offsetTop;
+      draw_strokes = function(strokes){
+        // stroke型態
+        switch_stroke(strokes.type);
 
-  if(painting){
-    addClick(mouseX, mouseY, true);
-    my_draw();
-  }
-});
+        // 只做圖最新兩點即可
+        context.beginPath();
+        context.lineTo(strokes.clickX[0]-wrapper_offset.left, strokes.clickY[0]-wrapper_offset.top);
+        context.lineTo(strokes.clickX[1]-wrapper_offset.left, strokes.clickY[1]-wrapper_offset.top);
+        context.stroke();
+      },
 
-canvas.mouseup(function(e){
-  reset_strokes();
-});
-
-canvas.mouseleave(function(e){
-  reset_strokes();
-});
-
-
-$('.toolbar').on('click','button',function(){
-  var btn = $(this).attr('class');
-  
-  if(btn === 'btn_eraser' || btn === 'btn_pencil'){
-    strokes.type = btn.replace('btn_','');
-    msg.html('<p> switch to: ' + btn.replace('btn_','') + '</p>');
-  }else if (btn === 'btn_clear'){
-    flySocket.clear_push();
-  }else{
-
-  }
-});
-
-$('.classrooms').on('click','button',function(){
-  var room = parseInt($(this).attr('room'));
-
-  flySocket.switch_classroom(room);
-
-  $('.this-classroom').html('You are in classroom '+room);
-});
+      switch_stroke = function(type){
+        switch(type)
+        {
+          case 'pencil':
+            context.globalCompositeOperation = "source-over";
+            context.strokeStyle = "rgba(0,0,0,1)";
+            context.lineJoin = "round";
+            context.lineWidth = 3;
+            break;
+          case 'eraser':
+            context.globalCompositeOperation = "destination-out";
+            context.strokeStyle = "rgba(0,0,0,1)";
+            context.lineJoin = "round";
+            context.lineWidth = 10;
+            break;
+          default:
+            context.globalCompositeOperation = "source-over";
+            context.strokeStyle = "rgba(0,0,0,1)";
+            context.lineJoin = "round";
+            context.lineWidth = 3;
+        }
+      };
 
 
-/*///////////////////////////////////////////////////////////////////////
-  
-  Functions
+  /* /////////////////
+    Public Functions
+  */ /////////////////
+  return {    
 
-*////////////////////////////////////////////////////////////////////////
+    pulled_strokes: function(data){
+      draw_strokes(data);
+    },    
 
-function reset_strokes(){
-  painting = false;
-  strokes.clickX[0] = -1;
-  strokes.clickX[1] = -1;
-  strokes.clickY[0] = -1;
-  strokes.clickY[1] = -1;
-}
+    clear_canvas: function(){
+      // Clears the canvas
+      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    },
 
-function addClick(x, y, dragging)
-{ 
-  
-  if (strokes.clickX[0] === -1){
-    strokes.clickX[0] = x;
-    strokes.clickX[1] = x;
-    strokes.clickY[0] = y;
-    strokes.clickY[1] = y;
-  }else{
-    strokes.clickX[0] = strokes.clickX[1];
-    strokes.clickX[1] = x;
-    strokes.clickY[0] = strokes.clickY[1];
-    strokes.clickY[1] = y;    
-  }
-  flySocket.click_push(strokes);
-}
+    init: function(host){
+      console.log('flyWhiteboard: init');
 
-function my_draw(){
-  // context.drawImage(outlineImage, 0, 0);
-  draw_strokes(strokes);
-}
+      canvas = $(".canvas");
+      context = canvas[0].getContext('2d');
+      wrapper = $(".wrapper");
+      wrapper_offset = wrapper.position();
+      msg = $(".msg");
 
-function resourceLoaded() {
-  my_draw();  
-}
+      // Create soket connection, with localtest=true
+      console.log(this);
+      flySocket.init(host,this,true);
 
-function pulled_strokes(data){
-  draw_strokes(data);
-}
+      /* 
+        We must set the canvas size by attribute, NOT in CSS!
+      */
+      canvas.attr("width",wrapper.css('width')+"px");
+      canvas.attr("height",wrapper.css('height')+"px");
 
-function draw_strokes(strokes){
+      canvas.mousedown(function(e){
+        var mouseX = e.pageX - this.offsetLeft,
+            mouseY = e.pageY - this.offsetTop;
+          
+        painting = true;
+        addClick(mouseX, mouseY, false);
+        my_draw();
+      });
 
-  // 效果不佳 會斷續
-  // for(var i=0; i < strokes.clickX.length; i++) {
-  //   if(strokes.clickDrag[i]){
-  //     context.fillRect(strokes.clickX[i]-wrapper_offset.left, strokes.clickY[i]-wrapper_offset.top,8,8);
-  //   }
-  // }
+      canvas.mousemove(function(e){
+        var mouseX = e.pageX - this.offsetLeft,
+            mouseY = e.pageY - this.offsetTop;
 
-  // stroke型態
-  switch_stroke(strokes.type);
+        if(painting){
+          addClick(mouseX, mouseY, true);
+          my_draw();
+        }
+      });
 
-  // 只做圖最新兩點即可
-  context.beginPath();
-  context.lineTo(strokes.clickX[0]-wrapper_offset.left, strokes.clickY[0]-wrapper_offset.top);
-  context.lineTo(strokes.clickX[1]-wrapper_offset.left, strokes.clickY[1]-wrapper_offset.top);
-  context.stroke();
-}
+      canvas.mouseup(function(e){
+        reset_strokes();
+      });
 
-function switch_stroke (type) {
-  switch(type)
-  {
-    case 'pencil':
-      context.globalCompositeOperation = "source-over";
-      context.strokeStyle = "rgba(0,0,0,1)";
-      context.lineJoin = "round";
-      context.lineWidth = 3;
-      break;
-    case 'eraser':
-      context.globalCompositeOperation = "destination-out";
-      context.strokeStyle = "rgba(0,0,0,1)";
-      context.lineJoin = "round";
-      context.lineWidth = 10;
-      break;
-    default:
-      context.globalCompositeOperation = "source-over";
-      context.strokeStyle = "rgba(0,0,0,1)";
-      context.lineJoin = "round";
-      context.lineWidth = 3;
-  }
-}
+      canvas.mouseleave(function(e){
+        reset_strokes();
+      });
 
-function clear_canvas(){
-   context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
-}
+      $('.toolbar').on('click','button',function(){
+        var btn = $(this).attr('class');
+        
+        if(btn === 'btn_eraser' || btn === 'btn_pencil'){
+          strokes.type = btn.replace('btn_','');
+          msg.html('<p> switch to: ' + btn.replace('btn_','') + '</p>');
+        }else if (btn === 'btn_clear'){
+          flySocket.clear_push();
+        }else{
+
+        }
+      });
+
+      $('.classrooms').on('click','button',function(){
+        var room = parseInt($(this).attr('room'));
+
+        flySocket.switch_classroom(room);
+
+        $('.this-classroom').html('You are in classroom '+room);
+      });
+    }
+  };
+
+}());

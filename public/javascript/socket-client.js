@@ -3,7 +3,7 @@ var flySocket = {
   socket: null,
   socket_id: null,
 
-  init: function(host,LOCAL_TEST){
+  init: function(host,whiteboard,LOCAL_TEST){
 
     socket = io.connect(host);
 
@@ -23,7 +23,7 @@ var flySocket = {
       // 跳過自己畫的strokes,只畫其他user的strokes
       // 因為localhost屬於同一個session,所以看不出效果
       if(!(data.id === socket_id) || LOCAL_TEST){
-        pulled_strokes(data.data);
+        whiteboard.pulled_strokes(data.data);
       }  
     });
 
@@ -32,7 +32,7 @@ var flySocket = {
       // 跳過自己畫的strokes,只畫其他user的strokes
       // 因為localhost屬於同一個session,所以看不出效果
       if(!(data.id === socket_id) || LOCAL_TEST){
-        clear_canvas();
+        whiteboard.clear_canvas();
       }  
     });
 
