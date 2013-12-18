@@ -10,6 +10,9 @@ var strokes = {
 var wrapper = $(".wrapper");
 var wrapper_offset = wrapper.position();
 
+// Create soket connection, with localtest=true
+flySocket.init('http://localhost:3000',true);
+
 /* 
   Default settings.
   We must set the canvas size by attribute, NOT in CSS!
@@ -60,7 +63,7 @@ $('.toolbar').on('click','button',function(){
     strokes.type = btn.replace('btn_','');
     msg.html('<p> switch to: ' + btn.replace('btn_','') + '</p>');
   }else if (btn === 'btn_clear'){
-    clear_push();
+    flySocket.clear_push();
   }else{
 
   }
@@ -69,7 +72,7 @@ $('.toolbar').on('click','button',function(){
 $('.classrooms').on('click','button',function(){
   var room = parseInt($(this).attr('room'));
 
-  switch_classroom(room);
+  flySocket.switch_classroom(room);
 
   $('.this-classroom').html('You are in classroom '+room);
 });
@@ -103,7 +106,7 @@ function addClick(x, y, dragging)
     strokes.clickY[0] = strokes.clickY[1];
     strokes.clickY[1] = y;    
   }
-  click_push(strokes);
+  flySocket.click_push(strokes);
 }
 
 function my_draw(){
