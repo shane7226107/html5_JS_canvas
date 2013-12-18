@@ -3,6 +3,9 @@ var flyWhiteboard = ( function() {
   /* /////////////////
     Private Variables
   */ /////////////////
+  // Constants
+  var UPDATE_TIMEOUT = 50;
+
   // Canvas related
   var painting = false,
       canvas = null,
@@ -13,7 +16,8 @@ var flyWhiteboard = ( function() {
         type: 'default'
       },
       wrapper =  null,
-      wrapper_offset = null;
+      wrapper_offset = null,
+      user_movements = [];
 
   // DOM Resources
   var msg = null,
@@ -89,6 +93,41 @@ var flyWhiteboard = ( function() {
   */ /////////////////
   return {    
 
+    update_movements: function(data){
+      var move = {
+        id: data.id,
+        X: data.X - wrapper_offset.left,
+        Y: data.Y - wrapper_offset.top
+      };
+
+      var e = user_movements.find(function(el) {
+                return el.attr('id') === move.id;
+              });
+
+      if(e){
+        // 更新位置
+        if (!e.freeze){         
+          e.css('top',move.Y);
+          e.css('left',move.X);
+          e.freeze = true;
+          setTimeout(function() {
+          e.freeze = false;
+        }, UPDATE_TIMEOUT);
+        }        
+      }else{
+        // 第一次和這個使用者同步
+        e = $("<div class='circle' id='"+move.id+"'>"+move.id+"</div>");                
+        e.css('top', move.Y);
+        e.css('left', move.X);        
+        wrapper.append(e);
+        e.freeze = true;
+        user_movements.push( e );
+        setTimeout(function() {
+          e.freeze = false;
+        }, UPDATE_TIMEOUT);
+      }
+    },
+
     pulled_strokes: function(data){
       draw_strokes(data);
     },    
@@ -107,7 +146,7 @@ var flyWhiteboard = ( function() {
       wrapper_offset = wrapper.position();
       msg = $(".msg");
 
-      // Create soket connection, with localtest=true
+      // Create socket connection, with localtest=true
       flySocket.init(host,this,true);
 
       /* 
@@ -133,6 +172,8 @@ var flyWhiteboard = ( function() {
           addClick(mouseX, mouseY, true);
           my_draw();
         }
+
+        flySocket.movement_push(mouseX, mouseY);
       });
 
       canvas.mouseup(function(e){

@@ -15,34 +15,47 @@ app.get('*', function (req, res) {
 });
 
 io.sockets.on('connection', function (socket) {
-  var user_in_classroom = 0;
+
+  socket.classroom = 0;
+  
   // Push users into the "classroom"
-  classrooms[user_in_classroom].push(socket);
+  classrooms[socket.classroom].push(socket);
 
   socket.emit('registration', socket.id);
 
   socket.on('click_push', function (data) {
     // broadcast to all users
-    classrooms[user_in_classroom].each(function(skt){
+    classrooms[this.classroom].each(function(skt){
       skt.emit('click_pull',{
         data: data,
-        id: skt.id
+        id: socket.id
       });
     }); 
   });
 
   socket.on('clear_push', function (data) {
     // broadcast to all users
-    classrooms[user_in_classroom].each(function(skt){
+    classrooms[this.classroom].each(function(skt){
       skt.emit('clear_pull',{
-        id: skt.id
+        id: socket.id
       });
     });
   });
 
   socket.on('switch_classroom', function (to_classroom) {
-    classrooms[user_in_classroom].remove(this);
+    classrooms[this.classroom].remove(this);
     classrooms[to_classroom].push(this);
-    user_in_classroom = to_classroom;
+    this.classroom = to_classroom;
   });
+
+  socket.on('movement_push', function (data) {
+    // broadcast to all users
+    classrooms[this.classroom].each(function(skt){
+      skt.emit('movement_pull',{
+        data: data,
+        id: socket.id
+      });
+    });
+  });
+
 });
