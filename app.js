@@ -41,21 +41,8 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('switch_classroom', function (to_classroom) {
-    var index = arrayObjectIndexOf(classrooms[user_in_classroom], this.id, 'id');
-
-    if(index !== -1){
-      classrooms[user_in_classroom].splice(index,1);
-      classrooms[to_classroom].push(this);
-
-      user_in_classroom = to_classroom;
-    }
+    classrooms[user_in_classroom].remove(this);
+    classrooms[to_classroom].push(this);
+    user_in_classroom = to_classroom;
   });
 });
-
-function arrayObjectIndexOf(myArray, searchTerm, property) {
-    for(var i = 0, len = myArray.length; i < len; i++) {
-        if (myArray[i][property] === searchTerm) return i;
-    }
-    return -1;
-}
-
