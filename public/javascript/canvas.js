@@ -1,5 +1,8 @@
 var flyWhiteboard = ( function() {
 
+  /* /////////////////
+    Private Variables
+  */ /////////////////
   // Canvas related
   var painting = false,
       canvas = null,
@@ -105,7 +108,6 @@ var flyWhiteboard = ( function() {
       msg = $(".msg");
 
       // Create soket connection, with localtest=true
-      console.log(this);
       flySocket.init(host,this,true);
 
       /* 
